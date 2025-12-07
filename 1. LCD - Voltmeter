@@ -1,1 +1,58 @@
+#include <LiquidCrystal.h>
 
+// --- LCD WIRING DEFINITION ---
+const int rs = 12;
+const int en = 11;
+const int d4 = 5;
+const int d5 = 4;
+const int d6 = 3;
+const int d7 = 2;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+// --- Ohmmeter Definitions ---
+const int analogInPin = A3;      // Analog input pin 
+const float vRef = 5.0;          // Arduino VCC
+const float rRef = 10000.0;      // Known Reference Resistor value in Ohms (10 kOhm)
+
+void setup() {
+  lcd.begin(16, 2);
+  lcd.print("Ohmmeter Ready");
+  lcd.setCursor(0, 1);
+  lcd.print("Rref: 10kOhm");
+  delay(2000);
+  lcd.clear();
+}
+
+void loop() {
+  int sensorValue = analogRead(analogInPin);
+
+  // Convert analog reading to measured voltage (Vout)
+  float vOut = (float)sensorValue * (vRef / 1024.0);
+
+  // Calculate the unknown resistance (R_unknown = R_ref * ((V_Ref / V_out) - 1))
+  float rUnknown;
+
+  if (vOut > 0.01) { 
+    rUnknown = rRef * ((vRef / vOut) - 1.0);
+  } else {
+    // Treat very low voltage as open circuit / over range
+    rUnknown = 999999999.0; 
+  }
+
+  // --- Display Resistance on LCD ---
+  lcd.setCursor(0, 0);
+  lcd.print("R_Unknown:");
+  
+  lcd.setCursor(0, 1);
+  if (rUnknown < 1000.0) {
+    lcd.print(rUnknown);
+    lcd.print(" Ohm    ");
+  } else if (rUnknown < 1000000.0) {
+    lcd.print(rUnknown / 1000.0);
+    lcd.print(" kOhm  ");
+  } else {
+    lcd.print("Over Range  ");
+  }
+
+  delay(500);
+}
