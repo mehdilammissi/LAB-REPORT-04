@@ -1,3 +1,12 @@
+/*
+ * Project: LCD Ohmmeter
+ * Goal: Use a voltage divider with a known resistor (R_ref) to calculate 
+ * and display the value of an unknown resistor (R_unknown) on the LCD.
+ * * WIRING:
+ * LCD: Uses the standard parallel setup (pins 12, 11, 5, 4, 3, 2).
+ * R_ref (10k Ohm) connected between +5V and A3.
+ * R_unknown connected between A3 and GND.
+ */
 #include <LiquidCrystal.h>
 
 // --- LCD WIRING DEFINITION ---
@@ -9,33 +18,46 @@ const int d6 = 3;
 const int d7 = 2;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
-const int analogInPin = A0; // Input pin for voltage reading
+// --- Ohmmeter Definitions ---
+const int analogInPin = A3;      // Analog input pin connected to the junction point
+const float vRef = 5.0;          
+const float rRef = 10000.0;      // Known Reference Resistor in Ohms (10 kOhm)
 
 void setup() {
   lcd.begin(16, 2);
-  lcd.print("Voltmeter Ready");
-  delay(1500);
+  lcd.print("Ohmmeter Ready");
+  lcd.setCursor(0, 1);
+  lcd.print("Rref: 10kOhm");
+  delay(2000);
   lcd.clear();
 }
 
 void loop() {
-  int V = analogRead(analogInPin);
+  int sensorValue = analogRead(analogInPin);
+  float vOut = (float)sensorValue * (vRef / 1024.0);
 
-  // Convert ADC reading to voltage (assuming 5V reference)
-  // Voltage = (ADC_value * 5.0) / 1023
-  float VA = V * (5.00 / 1023.0);
+  float rUnknown;
+  if (vOut > 0.01) { 
+    // Formula derived from voltage divider: R_unknown = R_ref * ((V_Ref / V_out) - 1)
+    rUnknown = rRef * ((vRef / vOut) - 1.0);
+  } else {
+    rUnknown = 999999999.0; 
+  }
 
-  // --- Display Voltage on Row 0 ---
+  // --- Display Resistance on LCD ---
   lcd.setCursor(0, 0);
-  lcd.print("Volt: ");
-  lcd.print(VA);
-  lcd.print(" V  "); 
-
-  // --- Display Elapsed Time on Row 1 ---
+  lcd.print("R_Unknown:");
+  
   lcd.setCursor(0, 1);
-  lcd.print("Time: ");
-  lcd.print(millis() / 1000); // Print seconds
-  lcd.print(" s    ");
+  if (rUnknown < 1000.0) {
+    lcd.print(rUnknown);
+    lcd.print(" Ohm    ");
+  } else if (rUnknown < 1000000.0) {
+    lcd.print(rUnknown / 1000.0);
+    lcd.print(" kOhm  ");
+  } else {
+    lcd.print("Over Range  ");
+  }
 
-  delay(200); 
+  delay(500);
 }
