@@ -1,34 +1,57 @@
-#include <Servo.h>
+#include <Stepper.h>
 
-Servo myservo; // Create servo object
+// --- STEPPER WIRING DEFINITION (For 28BYJ-48 motor) ---
+const int stepsPerRevolution = 2048; 
+const int in1 = 8;
+const int in2 = 9;
+const int in3 = 10;
+const int in4 = 11;
+Stepper myStepper(stepsPerRevolution, in1, in3, in2, in4); 
 
-// --- PIN DEFINITIONS ---
-const int ldrPin = A0;   // LDR connected to Analog pin A0
-const int servoPin = 6;  // Servo signal pin connected to Digital pin 6
+// --- JOYSTICK WIRING DEFINITION ---
+const int joystickXPin = A2; // X-axis connected to Analog pin A2
 
 void setup() {
-  myservo.attach(servoPin); // Attach servo to pin 6
-  Serial.begin(9600); 
-  Serial.println("LDR Servo Indicator Ready");
+  myStepper.setSpeed(15);
+  Serial.begin(9600);
+  Serial.println("Joystick Stepper Control Ready");
 }
 
 void loop() {
-  // Read the LDR value (0 to 1023)
-  int ldrValue = analogRead(ldrPin);
+  int xValue = analogRead(joystickXPin);
 
-  // Map LDR value to Servo angle (0 to 180 degrees)
-  // Brightest (low LDR value) -> 0 degrees
-  // Darkest (high LDR value) -> 180 degrees
-  int servoAngle = map(ldrValue, 0, 1023, 0, 180);
+  int neutralPoint = 512;
+  int deadZone = 50; // Area where the motor stops
+  int minRPM = 10;
+  int maxRPM = 60;
+  int motorRPM;
+  int stepsToMove = 100;
 
-  // Constrain angle and move the servo
-  servoAngle = constrain(servoAngle, 0, 180);
-  myservo.write(servoAngle);
+  // Check for stop condition (Dead Zone)
+  if (abs(xValue - neutralPoint) < deadZone) {
+    myStepper.setSpeed(0);
+    Serial.println("STOP");
+    delay(50);
+    return;
+  }
 
-  Serial.print("LDR Value: ");
-  Serial.print(ldrValue);
-  Serial.print(" -> Angle: ");
-  Serial.println(servoAngle);
+  // Determine Direction and Speed
+  if (xValue > neutralPoint) {
+    // Clockwise (Right movement)
+    motorRPM = map(xValue, neutralPoint + deadZone, 1023, minRPM, maxRPM);
+    myStepper.setSpeed(motorRPM);
+    myStepper.step(stepsToMove); 
+    Serial.print("CW | RPM: ");
+    Serial.println(motorRPM);
 
-  delay(20);
+  } else {
+    // Counter-Clockwise (Left movement)
+    motorRPM = map(xValue, 0, neutralPoint - deadZone, maxRPM, minRPM);
+    myStepper.setSpeed(motorRPM);
+    myStepper.step(-stepsToMove); 
+    Serial.print("CCW | RPM: ");
+    Serial.println(motorRPM);
+  }
+
+  delay(10);
 }
