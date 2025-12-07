@@ -1,3 +1,16 @@
+/*
+ * Project: LCD Voltmeter
+ * Goal: Read analog voltage from A0, convert it to a real voltage value,
+ * and display the voltage and elapsed time on a 16x2 LCD.
+ * * WIRING (Parallel LCD setup):
+ * LCD RS -> Arduino 12
+ * LCD E  -> Arduino 11
+ * LCD D4 -> Arduino 5
+ * LCD D5 -> Arduino 4
+ * LCD D6 -> Arduino 3
+ * LCD D7 -> Arduino 2
+ * Input voltage to be measured is connected to Analog Pin A0.
+ */
 #include <LiquidCrystal.h>
 
 // --- LCD WIRING DEFINITION ---
@@ -9,50 +22,30 @@ const int d6 = 3;
 const int d7 = 2;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
-// --- Ohmmeter Definitions ---
-const int analogInPin = A3;      // Analog input pin 
-const float vRef = 5.0;          // Arduino VCC
-const float rRef = 10000.0;      // Known Reference Resistor value in Ohms (10 kOhm)
+const int analogInPin = A0; // Input pin for voltage reading
 
 void setup() {
   lcd.begin(16, 2);
-  lcd.print("Ohmmeter Ready");
-  lcd.setCursor(0, 1);
-  lcd.print("Rref: 10kOhm");
-  delay(2000);
+  lcd.print("Voltmeter Ready");
+  delay(1500);
   lcd.clear();
 }
 
 void loop() {
-  int sensorValue = analogRead(analogInPin);
+  int V = analogRead(analogInPin);
+  float VA = V * (5.00 / 1023.0); // Convert ADC reading to voltage (assuming 5V reference)
 
-  // Convert analog reading to measured voltage (Vout)
-  float vOut = (float)sensorValue * (vRef / 1024.0);
-
-  // Calculate the unknown resistance (R_unknown = R_ref * ((V_Ref / V_out) - 1))
-  float rUnknown;
-
-  if (vOut > 0.01) { 
-    rUnknown = rRef * ((vRef / vOut) - 1.0);
-  } else {
-    // Treat very low voltage as open circuit / over range
-    rUnknown = 999999999.0; 
-  }
-
-  // --- Display Resistance on LCD ---
+  // Display Voltage on Row 0
   lcd.setCursor(0, 0);
-  lcd.print("R_Unknown:");
-  
-  lcd.setCursor(0, 1);
-  if (rUnknown < 1000.0) {
-    lcd.print(rUnknown);
-    lcd.print(" Ohm    ");
-  } else if (rUnknown < 1000000.0) {
-    lcd.print(rUnknown / 1000.0);
-    lcd.print(" kOhm  ");
-  } else {
-    lcd.print("Over Range  ");
-  }
+  lcd.print("Volt: ");
+  lcd.print(VA);
+  lcd.print(" V  "); 
 
-  delay(500);
+  // Display Elapsed Time on Row 1
+  lcd.setCursor(0, 1);
+  lcd.print("Time: ");
+  lcd.print(millis() / 1000); // Print seconds
+  lcd.print(" s    ");
+
+  delay(200); 
 }
