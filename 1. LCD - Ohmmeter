@@ -1,1 +1,41 @@
+#include <LiquidCrystal.h>
 
+// --- LCD WIRING DEFINITION ---
+const int rs = 12;
+const int en = 11;
+const int d4 = 5;
+const int d5 = 4;
+const int d6 = 3;
+const int d7 = 2;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+const int analogInPin = A0; // Input pin for voltage reading
+
+void setup() {
+  lcd.begin(16, 2);
+  lcd.print("Voltmeter Ready");
+  delay(1500);
+  lcd.clear();
+}
+
+void loop() {
+  int V = analogRead(analogInPin);
+
+  // Convert ADC reading to voltage (assuming 5V reference)
+  // Voltage = (ADC_value * 5.0) / 1023
+  float VA = V * (5.00 / 1023.0);
+
+  // --- Display Voltage on Row 0 ---
+  lcd.setCursor(0, 0);
+  lcd.print("Volt: ");
+  lcd.print(VA);
+  lcd.print(" V  "); 
+
+  // --- Display Elapsed Time on Row 1 ---
+  lcd.setCursor(0, 1);
+  lcd.print("Time: ");
+  lcd.print(millis() / 1000); // Print seconds
+  lcd.print(" s    ");
+
+  delay(200); 
+}
