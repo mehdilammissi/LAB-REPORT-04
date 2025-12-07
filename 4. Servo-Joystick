@@ -1,3 +1,12 @@
+/*
+ * Project: Joystick Stepper Control
+ * Goal: Use the joystick's X-axis position to control the speed and 
+ * direction (CW/CCW) of a stepper motor.
+ * * WIRING:
+ * Joystick X-Axis -> Arduino A2
+ * Stepper (In1-In4) -> Arduino 8, 9, 10, 11 (or 8, 10, 9, 11 for ULN2003)
+ * Note: Requires the Stepper.h library.
+ */
 #include <Stepper.h>
 
 // --- STEPPER WIRING DEFINITION (For 28BYJ-48 motor) ---
@@ -21,7 +30,7 @@ void loop() {
   int xValue = analogRead(joystickXPin);
 
   int neutralPoint = 512;
-  int deadZone = 50; // Area where the motor stops
+  int deadZone = 50; 
   int minRPM = 10;
   int maxRPM = 60;
   int motorRPM;
@@ -41,17 +50,16 @@ void loop() {
     motorRPM = map(xValue, neutralPoint + deadZone, 1023, minRPM, maxRPM);
     myStepper.setSpeed(motorRPM);
     myStepper.step(stepsToMove); 
-    Serial.print("CW | RPM: ");
-    Serial.println(motorRPM);
 
   } else {
     // Counter-Clockwise (Left movement)
     motorRPM = map(xValue, 0, neutralPoint - deadZone, maxRPM, minRPM);
     myStepper.setSpeed(motorRPM);
     myStepper.step(-stepsToMove); 
-    Serial.print("CCW | RPM: ");
-    Serial.println(motorRPM);
   }
 
+  Serial.print((xValue > neutralPoint) ? "CW" : "CCW");
+  Serial.print(" | RPM: ");
+  Serial.println(motorRPM);
   delay(10);
 }
