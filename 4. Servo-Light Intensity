@@ -1,1 +1,41 @@
+/*
+ * Project: Light Intensity Servo Indicator
+ * Goal: Read ambient light using an LDR and map the reading to control 
+ * the angle of a servo motor, acting as an indicator.
+ * * WIRING:
+ * Servo Signal Pin -> Arduino 6
+ * LDR Analog Read Pin -> Arduino A0
+ * Note: Requires the Servo.h library.
+ */
+#include <Servo.h>
 
+Servo myservo; 
+
+// --- PIN DEFINITIONS ---
+const int ldrPin = A0;   
+const int servoPin = 6;  
+
+void setup() {
+  myservo.attach(servoPin); 
+  Serial.begin(9600); 
+  Serial.println("LDR Servo Indicator Ready");
+}
+
+void loop() {
+  int ldrValue = analogRead(ldrPin);
+
+  // Map LDR value (0-1023) to Servo angle (0-180 degrees)
+  int servoAngle = map(ldrValue, 0, 1023, 0, 180);
+
+  // Constrain angle and move the servo
+  servoAngle = constrain(servoAngle, 0, 180);
+  myservo.write(servoAngle);
+
+  // Output to Serial Monitor for visual verification
+  Serial.print("LDR Value: ");
+  Serial.print(ldrValue);
+  Serial.print(" -> Angle: ");
+  Serial.println(servoAngle);
+
+  delay(20);
+}
