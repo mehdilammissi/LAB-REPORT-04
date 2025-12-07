@@ -1,3 +1,12 @@
+/*
+ * Project: DHT11 Sensor Display
+ * Goal: Read temperature and humidity values from the DHT11 sensor 
+ * and display them on the 16x2 LCD.
+ * * WIRING:
+ * LCD: Uses the standard parallel setup (pins 12, 11, 5, 4, 3, 2).
+ * DHT11 Signal Pin -> Arduino A1 (or any available digital pin).
+ * Note: Requires the DHT.h library.
+ */
 #include <LiquidCrystal.h>
 #include <DHT.h>
 
@@ -11,7 +20,7 @@ const int d7 = 2;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 // --- DHT11 DEFINITION ---
-#define DHTPIN A1        // DHT signal pin connected to Analog pin A1
+#define DHTPIN A1        
 #define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -24,8 +33,7 @@ void setup() {
 }
 
 void loop() {
-  // Wait 3 seconds between measurements for DHT11 stability
-  delay(3000);
+  delay(3000); // Recommended minimum delay for stable DHT11 readings
 
   float h = dht.readHumidity();
   float t = dht.readTemperature();
