@@ -1,3 +1,12 @@
+/*
+ * Project: Ultrasonic Distance Measurement
+ * Goal: Use the HC-SR04 ultrasonic sensor to measure distance and 
+ * display the value on the 16x2 LCD.
+ * * WIRING:
+ * LCD: Uses the standard parallel setup (pins 12, 11, 5, 4, 3, 2).
+ * HC-SR04 Trig Pin -> Arduino 9
+ * HC-SR04 Echo Pin -> Arduino 10
+ */
 #include <LiquidCrystal.h>
 
 // --- LCD WIRING DEFINITION ---
@@ -10,8 +19,8 @@ const int d7 = 2;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 // --- ULTRASONIC WIRING DEFINITION ---
-const int trigPin = 9;  // Trigger pin
-const int echoPin = 10; // Echo pin
+const int trigPin = 9;  
+const int echoPin = 10; 
 
 void setup() {
   lcd.begin(16, 2);
@@ -26,15 +35,13 @@ void loop() {
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
 
-  // Send 10µs pulse
   digitalWrite(trigPin, HIGH);
   delayMicroseconds(10);
   digitalWrite(trigPin, LOW);
 
-  // Read duration
   long duration = pulseIn(echoPin, HIGH);
 
-  // Calculate distance in centimeters
+  // Calculate distance in centimeters (Distance = (Duration * 0.0343) / 2)
   int distanceCm = duration * 0.0343 / 2;
 
   // Display the data
