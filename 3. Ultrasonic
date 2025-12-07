@@ -1,1 +1,49 @@
+#include <LiquidCrystal.h>
 
+// --- LCD WIRING DEFINITION ---
+const int rs = 12;
+const int en = 11;
+const int d4 = 5;
+const int d5 = 4;
+const int d6 = 3;
+const int d7 = 2;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+// --- ULTRASONIC WIRING DEFINITION ---
+const int trigPin = 9;  // Trigger pin
+const int echoPin = 10; // Echo pin
+
+void setup() {
+  lcd.begin(16, 2);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  lcd.print("Distance Ready");
+  delay(1000);
+  lcd.clear();
+}
+
+void loop() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+
+  // Send 10µs pulse
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // Read duration
+  long duration = pulseIn(echoPin, HIGH);
+
+  // Calculate distance in centimeters
+  int distanceCm = duration * 0.0343 / 2;
+
+  // Display the data
+  lcd.setCursor(0, 0);
+  lcd.print("Distance (cm):");
+
+  lcd.setCursor(0, 1);
+  lcd.print(distanceCm);
+  lcd.print(" cm    "); 
+
+  delay(500);
+}
