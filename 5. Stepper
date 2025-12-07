@@ -1,1 +1,65 @@
+/*
+ * Project: Joystick Stepper Control
+ * Goal: Use the joystick's X-axis position to control the speed and 
+ * direction (CW/CCW) of a stepper motor.
+ * * WIRING:
+ * Joystick X-Axis -> Arduino A2
+ * Stepper (In1-In4) -> Arduino 8, 9, 10, 11 (or 8, 10, 9, 11 for ULN2003)
+ * Note: Requires the Stepper.h library.
+ */
+#include <Stepper.h>
 
+// --- STEPPER WIRING DEFINITION (For 28BYJ-48 motor) ---
+const int stepsPerRevolution = 2048; 
+const int in1 = 8;
+const int in2 = 9;
+const int in3 = 10;
+const int in4 = 11;
+Stepper myStepper(stepsPerRevolution, in1, in3, in2, in4); 
+
+// --- JOYSTICK WIRING DEFINITION ---
+const int joystickXPin = A2; // X-axis connected to Analog pin A2
+
+void setup() {
+  myStepper.setSpeed(15);
+  Serial.begin(9600);
+  Serial.println("Joystick Stepper Control Ready");
+}
+
+void loop() {
+  int xValue = analogRead(joystickXPin);
+
+  int neutralPoint = 512;
+  int deadZone = 50; 
+  int minRPM = 10;
+  int maxRPM = 60;
+  int motorRPM;
+  int stepsToMove = 100;
+
+  // Check for stop condition (Dead Zone)
+  if (abs(xValue - neutralPoint) < deadZone) {
+    myStepper.setSpeed(0);
+    Serial.println("STOP");
+    delay(50);
+    return;
+  }
+
+  // Determine Direction and Speed
+  if (xValue > neutralPoint) {
+    // Clockwise (Right movement)
+    motorRPM = map(xValue, neutralPoint + deadZone, 1023, minRPM, maxRPM);
+    myStepper.setSpeed(motorRPM);
+    myStepper.step(stepsToMove); 
+
+  } else {
+    // Counter-Clockwise (Left movement)
+    motorRPM = map(xValue, 0, neutralPoint - deadZone, maxRPM, minRPM);
+    myStepper.setSpeed(motorRPM);
+    myStepper.step(-stepsToMove); 
+  }
+
+  Serial.print((xValue > neutralPoint) ? "CW" : "CCW");
+  Serial.print(" | RPM: ");
+  Serial.println(motorRPM);
+  delay(10);
+}
